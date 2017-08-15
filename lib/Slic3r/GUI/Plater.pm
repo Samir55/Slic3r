@@ -2387,6 +2387,14 @@ sub object_menu {
     
     my $frame = $self->GetFrame;
     my $menu = Wx::Menu->new;
+    wxTheApp->append_menu_item($menu, "Undo\tCtrl+Z", 'Undo', sub {
+#            $self->undo;
+            print ("Undo selected");
+        }, undef, 'arrow_undo.png');
+    wxTheApp->append_menu_item($menu, "Redo\tCtrl+Shift+Z", 'Redo', sub {
+#            $self->redo;
+            print ("Redo selected");
+        }, undef, 'arrow_redo.png');
     wxTheApp->append_menu_item($menu, "Delete\tCtrl+Del", 'Remove the selected object', sub {
         $self->remove;
     }, undef, 'brick_delete.png');
