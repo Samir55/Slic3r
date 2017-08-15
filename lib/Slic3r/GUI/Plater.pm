@@ -1,4 +1,13 @@
 # The "Plater" tab. It contains the "3D", "2D", "Preview" and "Layers" subtabs.
+package Slic3r::GUI::Plater::UndoableOperation;
+
+sub new{
+    my $class = shift;
+    # Get operation info.
+    my ($type, $obj_idx, $parameters) = @_;
+    # Debugging statement.
+    print ($type . "  " . $obj_idx. " " . $parameters[0]);
+}
 
 package Slic3r::GUI::Plater;
 use strict;
