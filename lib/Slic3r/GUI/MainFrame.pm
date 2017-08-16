@@ -191,6 +191,12 @@ sub _init_menubar {
             my $selectMenu = $self->{plater_select_menu} = Wx::Menu->new;
             wxTheApp->append_submenu($self->{plater_menu}, "Select", 'Select an object in the plater', $selectMenu, undef, 'brick.png');
         }
+        wxTheApp->append_menu_item($self->{plater_menu}, "Undo\tCtrl+Z", 'Undo', sub {
+                $plater->undo;
+            }, undef, 'arrow_undo.png');
+        wxTheApp->append_menu_item($self->{plater_menu}, "Redo\tCtrl+Shift+Z", 'Redo', sub {
+                $plater->redo;
+            }, undef, 'arrow_redo.png');
         wxTheApp->append_menu_item($self->{plater_menu}, "Select Next Object\tCtrl+Right", 'Select Next Object in the plater', sub {
             $plater->select_next;
         }, undef, 'arrow_right.png');

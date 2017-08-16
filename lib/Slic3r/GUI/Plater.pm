@@ -2,11 +2,33 @@
 package Slic3r::GUI::Plater::UndoableOperation;
 
 sub new{
-    my $class = shift;
-    # Get operation info.
+    my $self = shift;
+
+    # Save operation info.
     my ($type, $obj_idx, $parameters) = @_;
-    # Debugging statement.
-    print ($type . "  " . $obj_idx. " " . $parameters[0]);
+    $self->{type} = $type;
+    $self->{obj_idx} = $obj_idx;
+    $self->{parameters} = []; # ToDo @Samir55 improve.
+    for (@$parameters){
+        push $self->{parameters} , $_;
+    }
+
+    return $self;
+}
+
+sub type{
+    my $self = shift;
+    return $self->{type};
+}
+
+sub obj_idx{
+    my $self = shift;
+    return $self->{obj_idx};
+}
+
+sub parameters{
+    my $self = shift;
+    return $self->{parameters};
 }
 
 package Slic3r::GUI::Plater;
@@ -65,6 +87,11 @@ sub new {
     $self->{processed} = 0;
     # List of Perl objects Slic3r::GUI::Plater::Object, representing a 2D preview of the platter.
     $self->{objects} = [];
+
+    # Stack of opertaions for undo.
+    $self->{undoableOperations} = [];
+    # Stack for redo.
+    $self->{redoableOperations} = [];
     
     $self->{print}->set_status_cb(sub {
         my ($percent, $message) = @_;
@@ -1164,14 +1191,26 @@ sub center_selected_object_on_bed {
 
 sub rotate {
     my $self = shift;
-    my ($angle, $axis) = @_;
+    my ($angle, $axis, $obj_index, $dont_append) = @_;
     
     # angle is in degrees
     $axis //= Z;
-    
-    my ($obj_idx, $object) = $self->selected_object;
+
+    my ($obj_idx, $object);
+    if (defined $obj_index) {
+            $obj_idx = $obj_index;
+            $object =  $self->{objects}[$obj_idx];
+    }
+    else {
+        ($obj_idx, $object) = $self->selected_object;
+    }
     return if !defined $obj_idx;
-    
+
+    if(!$dont_append) {
+        my @parameters = ($angle, $axis);
+        push $self->{undoableOperations}, new Slic3r::GUI::Plater::UndoableOperation('rotate', $obj_idx, \@parameters);
+    }
+
     my $model_object = $self->{model}->objects->[$obj_idx];
     my $model_instance = $model_object->instances->[0];
     
@@ -2425,14 +2464,6 @@ sub object_menu {
     
     my $frame = $self->GetFrame;
     my $menu = Wx::Menu->new;
-    wxTheApp->append_menu_item($menu, "Undo\tCtrl+Z", 'Undo', sub {
-#            $self->undo;
-            print ("Undo selected");
-        }, undef, 'arrow_undo.png');
-    wxTheApp->append_menu_item($menu, "Redo\tCtrl+Shift+Z", 'Redo', sub {
-#            $self->redo;
-            print ("Redo selected");
-        }, undef, 'arrow_redo.png');
     wxTheApp->append_menu_item($menu, "Delete\tCtrl+Del", 'Remove the selected object', sub {
         $self->remove;
     }, undef, 'brick_delete.png');
@@ -2569,6 +2600,77 @@ sub zoom{
     elsif($currentSelection == 3) { #2D toolpaths tab
         $self->{toolpaths2D}->{canvas}->zoom($direction) if($self->{toolpaths2D});
     }
+}
+
+sub undo{
+    my $self = shift;
+    print("Hey\n");
+
+    my $operation = pop $self->{undoableOperations};
+    return if !defined $operation;
+
+    if ($operation->type eq 'rotate') {
+        $self->rotate(-1 * $operation->parameters->[0], $operation->parameters->[1], $operation->obj_idx, 1);
+    } elsif ($operation->type eq 'scale') {
+
+    } elsif ($operation->type eq 'mirror') {
+
+    } elsif ($operation->type eq 'increase') {
+
+    } elsif ($operation->type eq 'decrease') {
+
+    } elsif ($operation->type eq 'add') {
+
+    } elsif ($operation->type eq 'remove') {
+
+    } elsif ($operation->type eq 'reset') {
+
+    } elsif ($operation->type eq 'num_copies') {
+
+    } else {
+
+    }
+
+    print ("Undo selected\n");
+    # Push this operation to the redo stack.
+    push $self->{redoableOperations}, $operation;
+
+    return;
+}
+
+sub redo{
+    my $self = shift;
+
+    my $operation = pop $self->{redoableOperations};
+    return if !defined $operation;
+print("HEY Redo");
+    if ($operation->type eq 'rotate') {
+        $self->rotate($operation->parameters->[0], $operation->parameters->[1], $operation->obj_idx, 1);
+    } elsif ($operation->type eq 'scale') {
+
+    } elsif ($operation->type eq 'mirror') {
+
+    } elsif ($operation->type eq 'increase') {
+
+    } elsif ($operation->type eq 'decrease') {
+
+    } elsif ($operation->type eq 'add') {
+
+    } elsif ($operation->type eq 'remove') {
+
+    } elsif ($operation->type eq 'reset') {
+
+    } elsif ($operation->type eq 'num_copies') {
+
+    } else {
+
+    }
+
+    print ("Redo selected\n");
+    # Push this operation to the redo stack.
+    push $self->{undoableOperations}, $operation;
+
+    return;
 }
 
 package Slic3r::GUI::Plater::DropTarget;
