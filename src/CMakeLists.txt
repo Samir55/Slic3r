@@ -85,7 +85,7 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/SurfaceCollection.cpp
     ${LIBDIR}/libslic3r/SVG.cpp
     ${LIBDIR}/libslic3r/TriangleMesh.cpp
-)
+        ../xs/src/libslic3r/Supports.cpp ../xs/src/libslic3r/Supports.h)
 
 add_library(admesh STATIC
     ${LIBDIR}/admesh/connect.c
