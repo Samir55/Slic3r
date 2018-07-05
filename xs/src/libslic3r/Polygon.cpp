@@ -293,4 +293,29 @@ Polygon::convex_points(double angle) const
     return convex;
 }
 
+Polygon Polygon::new_scale(const Pointfs& p) {
+    Points scaled_p;
+    for (auto i : p) {
+        // scale each individual point and append to a new array
+        scaled_p.push_back(Slic3r::Point(scale_(i.x), scale_(i.y)));
+    }
+    return Slic3r::Polygon(scaled_p);
+};
+
+BoundingBox get_extents(const Polygon &poly)
+{
+    return poly.bounding_box();
+}
+
+BoundingBox get_extents(const Polygons &polygons)
+{
+    BoundingBox bb;
+    if (! polygons.empty()) {
+        bb = get_extents(polygons.front());
+        for (size_t i = 1; i < polygons.size(); ++ i)
+            bb.merge(get_extents(polygons[i]));
+    }
+    return bb;
+}
+
 }

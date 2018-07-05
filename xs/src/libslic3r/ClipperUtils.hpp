@@ -14,12 +14,16 @@ using ClipperLib::jtSquare;
 
 namespace Slic3r {
 
+#define CLIPPER_OFFSET_SHORTEST_EDGE_FACTOR (0.005f)
+#define CLIPPER_OFFSET_SCALE_ROUNDING_DELTA ((1 << (CLIPPER_OFFSET_POWER_OF_2 - 1)) - 1)
+
 // Factor to convert from coord_t (which is int32) to an int64 type used by the Clipper library.
 //FIXME Vojtech: Better to use a power of 2 coefficient and to use bit shifts for scaling.
 // How about 2^17=131072?
 // By the way, is the scalling needed at all? Cura runs all the computation with a fixed point precision of 1um, while Slic3r scales to 1nm,
 // further scaling by 10e5 brings us to 
-constexpr float CLIPPER_OFFSET_SCALE = 100000.0;
+constexpr auto CLIPPER_OFFSET_POWER_OF_2 = 17;
+constexpr float CLIPPER_OFFSET_SCALE = (1 << CLIPPER_OFFSET_POWER_OF_2);
 constexpr auto MAX_COORD = ClipperLib::hiRange / CLIPPER_OFFSET_SCALE;
 
 //-----------------------------------------------------------
@@ -54,6 +58,27 @@ ClipperLib::Paths _offset(const Slic3r::Polylines &polylines, const float delta,
 Slic3r::Polygons offset(const Slic3r::Polylines &polylines, const float delta,
     double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
     double miterLimit = 3);
+
+ClipperLib::Paths _offset(ClipperLib::Paths &&input, ClipperLib::EndType endType, const float delta, ClipperLib::JoinType joinType, double miterLimit);
+
+// This is a safe variant of the polygons offset, tailored for multiple ExPolygons.
+// It is required, that the input expolygons do not overlap and that the holes of each ExPolygon don't intersect with their respective outer contours.
+// Each ExPolygon is offsetted separately, then the offsetted ExPolygons are united.
+ClipperLib::Paths _offset(const Slic3r::ExPolygons &expolygons, const float delta,
+                          ClipperLib::JoinType joinType, double miterLimit);
+
+Slic3r::Polygon ClipperPath_to_Slic3rPolygon(const ClipperLib::Path &input);
+Slic3r::Polygons ClipperPaths_to_Slic3rPolygons(const ClipperLib::Paths &input);
+
+inline Slic3r::Polygons offset(const Slic3r::ExPolygons &expolygons, const float delta, ClipperLib::JoinType joinType = ClipperLib::jtMiter, double miterLimit = 3)
+{ return ClipperPaths_to_Slic3rPolygons(_offset(expolygons, delta, joinType, miterLimit)); }
+
+inline Slic3r::Polygons offset(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType, double miterLimit = 3)
+{ return ClipperPaths_to_Slic3rPolygons(_offset(Slic3rMultiPoints_to_ClipperPaths(polygons), ClipperLib::etClosedPolygon, delta, joinType, miterLimit)); }
+
+inline Slic3r::Polygons offset(const Slic3r::Polylines &polylines, const float delta, ClipperLib::JoinType joinType, double miterLimit = 3)
+{ return ClipperPaths_to_Slic3rPolygons(_offset(Slic3rMultiPoints_to_ClipperPaths(polylines), ClipperLib::etOpenButt, delta, joinType, miterLimit)); }
+
 Slic3r::Surfaces offset(const Slic3r::Surface &surface, const float delta,
     double scale = CLIPPER_OFFSET_SCALE, ClipperLib::JoinType joinType = ClipperLib::jtSquare, 
     double miterLimit = 3);

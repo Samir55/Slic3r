@@ -48,7 +48,12 @@ class Polygon : public MultiPoint {
     std::string wkt() const;
     Points concave_points(double angle = PI) const;
     Points convex_points(double angle = PI) const;
+
+    static Polygon new_scale(const Pointfs& p);
 };
+
+extern BoundingBox get_extents(const Polygon &poly);
+extern BoundingBox get_extents(const Polygons &polygons);
 
 inline Polygons
 operator+(Polygons src1, const Polygons &src2) {
@@ -61,6 +66,14 @@ operator+=(Polygons &dst, const Polygons &src2) {
     append_to(dst, src2);
     return dst;
 };
+
+inline void polygons_rotate(Polygons &polys, double angle)
+{
+    const double cos_angle = cos(angle);
+    const double sin_angle = sin(angle);
+    for (Polygon &p : polys)
+        p.rotate(cos_angle, sin_angle);
+}
 
 }
 
