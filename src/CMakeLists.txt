@@ -61,6 +61,10 @@ find_package(Threads REQUIRED)
 
 find_package(Boost REQUIRED COMPONENTS system thread filesystem)
 
+include(/home/ahmedsamir/Desktop/tbb-2018_U5/cmake/TBBGet.cmake)
+tbb_get(TBB_ROOT /home/ahmedsamir/Desktop/tbb-2018_U5/ CONFIG_DIR TBB_DIR)
+find_package(TBB)
+
 set(LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/../xs/src/)
 set(GUI_LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/GUI/)
 set(TESTDIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
