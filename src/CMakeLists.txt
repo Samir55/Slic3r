@@ -82,11 +82,18 @@ add_library(ZipArchive STATIC
 )
 target_compile_features(ZipArchive PUBLIC cxx_std_11)
 
-include(${LIBDIR}tbb/cmake/TBBGet.cmake)
-include(${LIBDIR}tbb/cmake/TBBBuild.cmake)
-tbb_get(TBB_ROOT tbb_root SOURCE_CODE)
-tbb_build(TBB_ROOT ${tbb_root} CONFIG_DIR TBB_DIR)
-find_package(TBB)
+# include TBB
+include_directories(${LIBDIR}/tbb/include)
+
+# Build TBB
+set(TBB_BUILD_STATIC ON CACHE BOOL " " FORCE)
+set(TBB_BUILD_SHARED OFF CACHE BOOL " " FORCE)
+set(TBB_BUILD_TBBMALLOC ON CACHE BOOL " " FORCE)
+set(TBB_BUILD_TBBMALLOC_PROXY ON CACHE BOOL " " FORCE)
+set(TBB_BUILD_TESTS ON CACHE BOOL " " FORCE)
+
+add_subdirectory(${LIBDIR}/tbb tbb)
+set_property(TARGET tbb_static tbb_def_files PROPERTY FOLDER "dependencies")
 
 add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/BoundingBox.cpp
@@ -240,7 +247,7 @@ set(LIBSLIC3R_DEPENDS
     polypartition
     poly2tri
     ZipArchive
-    tbb
+    tbb_static
     ${Boost_LIBRARIES}
 )
 
