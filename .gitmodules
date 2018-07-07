@@ -1,0 +1,4 @@
+
+[submodule "xs/src/tbb"]
+	path = xs/src/tbb
+	url = https://github.com/wjakob/tbb.git
