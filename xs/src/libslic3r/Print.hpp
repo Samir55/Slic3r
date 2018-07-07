@@ -2,31 +2,37 @@
 #define slic3r_Print_hpp_
 
 #include "libslic3r.h"
-#include <set>
+#include <boost/thread.hpp>
+#include <exception>
 #include <string>
 #include <vector>
-#include <boost/thread.hpp>
+#include <set>
 #include "BoundingBox.hpp"
 #include "Flow.hpp"
-#include "PrintConfig.hpp"
-#include "Point.hpp"
 #include "Layer.hpp"
+#include "LayerHeightSpline.hpp"
 #include "Model.hpp"
 #include "PlaceholderParser.hpp"
-
+#include "Point.hpp"
+#include "PrintConfig.hpp"
+#include "SlicingAdaptive.hpp"
+#include "SupportMaterial.hpp"
 
 namespace Slic3r {
+
+class InvalidObjectException : public std::exception {};
 
 class Print;
 class PrintObject;
 class ModelObject;
+class SupportParameters;
 
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
     psSkirt, psBrim,
 };
 enum PrintObjectStep {
-    posSlice, posPerimeters, posDetectSurfaces,
+    posLayers, posSlice, posPerimeters, posDetectSurfaces,
     posPrepareInfill, posInfill, posSupportMaterial,
 };
 
@@ -56,6 +62,7 @@ class PrintRegion
     Print* print();
     Flow flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, const PrintObject &object) const;
     bool invalidate_state_by_config(const PrintConfigBase &config);
+    coordf_t nozzle_dmr_avg(const PrintConfig &print_config) const;
 
     private:
     Print* _print;
@@ -74,18 +81,20 @@ class PrintObject
     friend class Print;
 
     public:
-    // map of (vectors of volume ids), indexed by region_id
-    /* (we use map instead of vector so that we don't have to worry about
-       resizing it and the [] operator adds new items automagically) */
+    /// map of (vectors of volume ids), indexed by region_id
+    /// (we use map instead of vector so that we don't have to worry about
+    /// resizing it and the [] operator adds new items automagically)
     std::map< size_t,std::vector<int> > region_volumes;
-    PrintObjectConfig config;
+    PrintObjectConfig config; //< Configuration
     t_layer_height_ranges layer_height_ranges;
     
-    // this is set to true when LayerRegion->slices is split in top/internal/bottom
-    // so that next call to make_perimeters() performs a union() before computing loops
+    LayerHeightSpline layer_height_spline;
+
+    /// this is set to true when LayerRegion->slices is split in top/internal/bottom
+    /// so that next call to make_perimeters() performs a union() before computing loops
     bool typed_slices;
 
-    Point3 size;           // XYZ in scaled coordinates
+    Point3 size;           //< XYZ in scaled coordinates
 
     // scaled coordinates to add to copies (to compensate for the alignment
     // operated when creating the object but still preserving a coherent API
@@ -100,7 +109,7 @@ class PrintObject
     // TODO: Fill* fill_maker        => (is => 'lazy');
     PrintState<PrintObjectStep> state;
     
-    Print* print();
+    Print* print() const;
     ModelObject* model_object() { return this->_model_object; };
     
     Points copies() const;
@@ -147,6 +156,10 @@ class PrintObject
     std::vector<ExPolygons> _slice_region(size_t region_id, std::vector<float> z, bool modifier);
     void _make_perimeters();
     void _infill();
+
+    // Supports functions.
+    void _generate_support_material();
+    SupportParameters support_parameters() const;
     
     private:
     Print* _print;

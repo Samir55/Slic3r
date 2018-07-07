@@ -18,6 +18,11 @@ Point::operator==(const Point& rhs) const
     return this->coincides_with(rhs);
 }
 
+Point
+Point::new_scale(Pointf p) {
+    return Point(scale_(p.x), scale_(p.y));
+}
+
 std::string
 Point::wkt() const
 {
@@ -420,11 +425,21 @@ Pointf::vector_to(const Pointf &point) const
     return Vectorf(point.x - this->x, point.y - this->y);
 }
 
+std::ostream&
+operator<<(std::ostream &stm, const Pointf3 &pointf3)
+{
+    return stm << pointf3.x << "," << pointf3.y << "," << pointf3.z;
+}
+
 void
 Pointf3::scale(double factor)
 {
     Pointf::scale(factor);
     this->z *= factor;
+}
+
+bool Pointf::operator==(const Pointf& rhs) const { 
+    return Point::new_scale(*this) == Point::new_scale(rhs);
 }
 
 void

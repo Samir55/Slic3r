@@ -36,7 +36,11 @@ class Point
     static Point new_scale(coordf_t x, coordf_t y) {
         return Point(scale_(x), scale_(y));
     };
+
+    /// Scale and create a Point from a Pointf.
+    static Point new_scale(Pointf p);
     bool operator==(const Point& rhs) const;
+    bool operator<(const Point& rhs) const { return this->x < rhs.x || (this->x == rhs.x && this->y < rhs.y); }
     std::string wkt() const;
     std::string dump_perl() const;
     void scale(double factor);
@@ -96,6 +100,7 @@ class Point3 : public Point
     public:
     coord_t z;
     explicit Point3(coord_t _x = 0, coord_t _y = 0, coord_t _z = 0): Point(_x, _y), z(_z) {};
+    bool coincides_with(const Point3 &point3) const { return this->x == point3.x && this->y == point3.y && this->z == point3.z; }
 };
 
 std::ostream& operator<<(std::ostream &stm, const Pointf &pointf);
@@ -112,6 +117,10 @@ class Pointf
     static Pointf new_unscale(const Point &p) {
         return Pointf(unscale(p.x), unscale(p.y));
     };
+
+    // equality operator based on the scaled coordinates
+    bool operator==(const Pointf& rhs) const;
+
     std::string wkt() const;
     std::string dump_perl() const;
     void scale(double factor);
@@ -122,6 +131,8 @@ class Pointf
     Pointf negative() const;
     Vectorf vector_to(const Pointf &point) const;
 };
+
+std::ostream& operator<<(std::ostream &stm, const Pointf3 &pointf3);
 
 class Pointf3 : public Pointf
 {
@@ -148,6 +159,20 @@ to_points(const std::vector<T> &items)
         append_to(pp, (Points)*it);
     return pp;
 }
+
+inline Points
+scale(const std::vector<Pointf>&in ) {
+    Points out; 
+    for (const auto& p : in) {out.push_back(Point(scale_(p.x), scale_(p.y))); }
+    return out;
+}
+
+// To be used by std::unordered_map, std::unordered_multimap and friends.
+struct PointHash {
+    size_t operator()(const Point &pt) const {
+        return std::hash<coord_t>()(pt.x) ^ std::hash<coord_t>()(pt.y);
+    }
+};
 
 }
 

@@ -36,7 +36,7 @@ void confess_at(const char *file, int line, const char *func, const char *pat, .
 #define __TRANS(s) s
 namespace Slic3r {
 
-constexpr auto SLIC3R_VERSION = "1.3.0-dev";
+constexpr auto SLIC3R_VERSION = "1.3.1-dev";
 
 typedef long coord_t;
 typedef double coordf_t;
@@ -111,6 +111,14 @@ parallelize(T start, T end, boost::function<void(T)> func,
     std::queue<T> queue;
     for (T i = start; i <= end; ++i) queue.push(i);
     parallelize(queue, func, threads_count);
+}
+
+template <typename T>
+inline void remove_nulls(std::vector<T*> &vec)
+{
+    vec.erase(
+        std::remove_if(vec.begin(), vec.end(), [](const T *ptr) { return ptr == nullptr; }),
+        vec.end());
 }
 
 } // namespace Slic3r

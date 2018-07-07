@@ -76,6 +76,7 @@ PrintRegion::invalidate_state_by_config(const PrintConfigBase &config)
     for (const t_config_option_key &opt_key : diff) {
         if (opt_key == "perimeters"
             || opt_key == "extra_perimeters"
+            || opt_key == "min_shell_thickness"
             || opt_key == "gap_fill_speed"
             || opt_key == "overhangs"
             || opt_key == "first_layer_extrusion_width"
@@ -98,6 +99,8 @@ PrintRegion::invalidate_state_by_config(const PrintConfigBase &config)
             || opt_key == "solid_infill_every_layers"
             || opt_key == "bottom_solid_layers"
             || opt_key == "top_solid_layers"
+            || opt_key == "min_top_bottom_shell_thickness"
+            || opt_key == "min_shell_thickness"
             || opt_key == "infill_extruder"
             || opt_key == "solid_infill_extruder"
             || opt_key == "infill_extrusion_width") {
@@ -158,6 +161,14 @@ PrintRegion::invalidate_state_by_config(const PrintConfigBase &config)
     }
     
     return invalidated;
+}
+
+coordf_t
+PrintRegion::nozzle_dmr_avg(const PrintConfig &print_config) const
+{
+    return (print_config.nozzle_diameter.get_at(this->config.perimeter_extruder.value    - 1) +
+        print_config.nozzle_diameter.get_at(this->config.infill_extruder.value       - 1) +
+        print_config.nozzle_diameter.get_at(this->config.solid_infill_extruder.value - 1)) / 3.;
 }
 
 }
