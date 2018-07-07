@@ -61,10 +61,6 @@ find_package(Threads REQUIRED)
 
 find_package(Boost REQUIRED COMPONENTS system thread filesystem)
 
-include(/home/ahmedsamir/Desktop/tbb/cmake/TBBGet.cmake)
-tbb_get(TBB_ROOT tbb_root CONFIG_DIR TBB_DIR)
-find_package(TBB)
-
 set(LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/../xs/src/)
 set(GUI_LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/GUI/)
 set(TESTDIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
@@ -86,7 +82,9 @@ add_library(ZipArchive STATIC
 )
 target_compile_features(ZipArchive PUBLIC cxx_std_11)
 
-
+include(${LIBDIR}/tbb/cmake/TBBGet.cmake)
+tbb_get(TBB_ROOT tbb_root CONFIG_DIR TBB_DIR)
+find_package(TBB)
 
 add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/BoundingBox.cpp
