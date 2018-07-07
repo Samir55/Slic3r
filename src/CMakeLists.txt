@@ -83,7 +83,9 @@ add_library(ZipArchive STATIC
 target_compile_features(ZipArchive PUBLIC cxx_std_11)
 
 include(${LIBDIR}tbb/cmake/TBBGet.cmake)
-tbb_get(TBB_ROOT tbb_root CONFIG_DIR TBB_DIR)
+include(${LIBDIR}tbb/cmake/TBBBuild.cmake)
+tbb_get(TBB_ROOT tbb_root SOURCE_CODE)
+tbb_build(TBB_ROOT ${tbb_root} CONFIG_DIR TBB_DIR)
 find_package(TBB)
 
 add_library(libslic3r STATIC
