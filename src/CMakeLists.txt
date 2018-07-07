@@ -82,7 +82,7 @@ add_library(ZipArchive STATIC
 )
 target_compile_features(ZipArchive PUBLIC cxx_std_11)
 
-include(${LIBDIR}/tbb/cmake/TBBGet.cmake)
+include(${LIBDIR}tbb/cmake/TBBGet.cmake)
 tbb_get(TBB_ROOT tbb_root CONFIG_DIR TBB_DIR)
 find_package(TBB)
 
