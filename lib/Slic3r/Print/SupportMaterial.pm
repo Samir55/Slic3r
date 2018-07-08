@@ -98,7 +98,7 @@ sub contact_area {
     # if user specified a custom angle threshold, convert it to radians
     my $threshold_rad;
     if (!($conf->support_material_threshold =~ /%$/)) {
-        $threshold_rad = deg2rad($conf->support_material_threshold + 1);  # +1 makes the threshold inclusive
+        $threshold_rad = deg2rad($conf->support_materia_threshold + 1);  # +1 makes the threshold inclusive
         Slic3r::debugf "Threshold angle = %d°\n", rad2deg($threshold_rad);
     }
     
@@ -128,7 +128,7 @@ sub contact_area {
         if ( $layer_id > 0
               && !$conf->support_material
               && ($layer_id >= $conf->support_material_enforce_layers) ) {
-            # if we are only going to generate raft just check 
+            # if we are only going to generate raft just check
             # the 'overhangs' of the first object layer
             last;
         }
@@ -137,7 +137,7 @@ sub contact_area {
         if ($buildplate_only) {
             # Collect the top surfaces up to this layer and merge them.
             my $projection_new = [];
-            push @$projection_new, ( map $_->p, map @{$_->slices->filter_by_type(S_TYPE_TOP)}, @{$layer->regions} );
+            push @$projection_new, ( map $_->p, map @{$_->slices->filter_by_type(S_TYPE_TOP)}, @{$layer->regions} ); # TODO @Samir55 See this.
             if (@$projection_new) {
                 # Merge the new top surfaces with the preceding top surfaces.
                 # Apply the safety offset to the newly added polygons, so they will connect
